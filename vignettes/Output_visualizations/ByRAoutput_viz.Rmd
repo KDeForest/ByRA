@@ -8,7 +8,7 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
-## Paste working directory below
+## Paste ByRA outputs folder path below
 knitr::opts_knit$set(root.dir = 'C:/Users/kelly/Box Sync/modleR/ByRA_kd/vignettes/Output_visualizations/Sample_data/outputs')
 
 ```
@@ -191,7 +191,7 @@ EC_plot <- scatter %>%
 EC_plot
 ```
 
-#### **Figure 1b.** Mean exposure, consequence, and risk scores from all stressors
+#### **Figure 1b.** Mean exposure, consequence, and risk scores from all stressors.Mean exposure and consequence are on the x and y axis. The point shape identifies the species, point color identifies the subregion, and the values associated with each point are the mean risk.
 
 ```{r ByRA_stats2}
 ## Option 2 with a gradient background 
@@ -214,7 +214,7 @@ ggplot() +
 ```
 
 
-#### **Figure 2.** The percentage of high, medium, and low risk areas combined for all stressors for each subregion as defined by the AOI. 
+#### **Figure 2.** The percentage of high, medium, and low risk areas combined for all stressors for each subregion as defined by the AOI.  
 ##
 * (*Note: This currently doesn't represent the % of total subregion area, just % of area that has some amount of risk.*)
 
