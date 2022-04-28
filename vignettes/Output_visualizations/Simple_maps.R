@@ -1,7 +1,7 @@
 ## Made by Kelly DeForest, SFSU
 ## 04/28/2022
 
-## This script was created to make quick maps of ByRA output tifs. It will save
+## This script was created to make quick plots of ByRA output tifs. It will save
 ## pngs of the maps to your working directory for each tif, and it will plot them in
 ## your RStudio, assuming you're using RStudio.
 
@@ -39,15 +39,11 @@ tmap_mode("plot")
 for (r in 1:length(allRR)){
   inras <- raster(allRR[r])
   inras[inras==0] <- NA
-  static_map <- tm_grid(n.x = 4, n.y = 3)+
-    tm_shape(inras) +
-    tm_raster(style = "fixed", palette = "Oranges", breaks = c(1,2,3,3), labels = c("1-low", "2-medium", "3-high"), legend.show = TRUE)+
+  static_map <- tm_shape(inras) +
+    tm_raster(style = "fixed", palette = "Oranges", breaks = c(1,2,3,3), labels = c("1-low", "2-medium", "3-high"), legend.show = T)+
     #uncomment the two lines below if you have an AOI
     #tm_shape(AOI)+
     #tm_borders(col= "Black")+
-    tm_compass(position= c("LEFT","bottom"))+
-    tm_scale_bar(position = c("center", "bottom"), width = 0.1)+
-    tm_layout(legend.position = c("right","top"), legend.frame = TRUE, legend.bg.color = "white", legend.frame.lwd = 2, frame = TRUE, frame.lwd = 3)
   tmap_save(static_map,paste0("reclassmap_",r,".png"))
   print(static_map)
 }
@@ -57,15 +53,11 @@ tmap_mode("plot")
 for (t in 1:length(allTR)){
   inras <- raster(allTR[t])
   inras[inras==0] <- NA
-  static_map <- tm_grid(n.x = 4, n.y = 3)+
-    tm_shape(inras) +
-    tm_raster(style = pick_style, palette = "Reds", legend.show = TRUE)+
+  static_map <- tm_shape(inras) +
+    tm_raster(style = pick_style, palette = "Reds", legend.show = T)+
     # uncomment the two lines below if you have an AOI
     #tm_shape(AOI)+
     #tm_borders(col= "Black")+
-    tm_compass(position= c("LEFT","bottom"))+
-    tm_scale_bar(position = c("center", "bottom"), width = 0.1)+
-    tm_layout(legend.position = c("right","top"), legend.frame = TRUE, legend.bg.color = "white", legend.frame.lwd = 2, frame = TRUE, frame.lwd = 3)
   tmap_save(static_map,paste0("totalmap_",t,".png"))
   print(static_map)
 }
