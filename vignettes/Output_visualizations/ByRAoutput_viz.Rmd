@@ -90,7 +90,7 @@ if (compareCRS(AOI,RRE_ras) == TRUE){
 }
 
 ```
-### **Step 5:** Interactive map of ecosystem-level bycatch risk
+### **Step 5:** Interactive map of Region-level bycatch risk
 ##
 #### Layer descriptions adapted from [InVEST](https://storage.googleapis.com/releases.naturalcapitalproject.org/invest-userguide/latest/habitat_risk_assessment.html#model-outputs):
 ##
@@ -119,6 +119,16 @@ output_map
 
 ### **Step 6:** Static maps of ecosystem-level bycatch risk
 ```{r staticRRMap, fig.show="hold"}
+
+# define the tile server parameters
+osmpos <- list(src = 'CARTO.POSITRON',
+               q = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
+               sub = c('a','b', 'c', 'd'), 
+               cit = '© OpenStreetMap contributors © CARTO.')
+
+# get open street map tiles for the area of interest
+AOItiles <- get_tiles(AOI,provider = osmpos, zoom = 11, verbose = TRUE)
+
 # setup layout view for printed maps
 grid.newpage()
 pushViewport(viewport(layout=grid.layout(1,2)))
@@ -128,14 +138,16 @@ tmap_mode("plot")
 for (r in 1:length(allRR)){
   inras <- raster(allRR[r])
   inras[inras==0] <- NA
-static_map <- tm_grid(n.x = 4, n.y = 3)+
+static_map <- tm_shape(AOItiles) +
+  tm_rgb()+
+  tm_grid(n.x = 4, n.y = 3)+
   tm_shape(inras) +
   tm_raster(style = "fixed", palette = "Oranges", breaks = c(1,2,3,3), labels = c("1-low", "2-medium", "3-high"), legend.show = TRUE)+
   tm_shape(AOI)+
   tm_borders(col= "Black")+
   tm_compass(position= c("LEFT","bottom"))+
   tm_scale_bar(position = c("center", "bottom"), width = 0.1)+
-  tm_layout(legend.position = c("right","top"), legend.frame = TRUE, legend.bg.color = "white", legend.frame.lwd = 2, frame = TRUE, frame.lwd = 3)
+  tm_layout(legend.position = c("right","TOP"), legend.frame = TRUE, legend.bg.color = "white", legend.frame.lwd = 2, frame = TRUE, frame.lwd = 3)
 tmap_save(static_map,paste0("reclassmap_",r,".png"))
 print(static_map, vp=viewport(layout.pos.col = r))
 }
@@ -144,6 +156,16 @@ print(static_map, vp=viewport(layout.pos.col = r))
 
 ### **Step 7:** Static maps of species-level bycatch risk
 ```{r staticTRmap, fig.show="hold"}
+
+# define the tile server parameters
+osmpos <- list(src = 'CARTO.POSITRON',
+               q = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
+               sub = c('a','b', 'c', 'd'), 
+               cit = '© OpenStreetMap contributors © CARTO.')
+
+# get open street map tiles for the area of interest
+AOItiles <- get_tiles(AOI,provider = osmpos, zoom = 11, verbose = TRUE)
+
 # setup layout view for printed maps
 grid.newpage()
 pushViewport(viewport(layout=grid.layout(1,2)))
@@ -153,14 +175,16 @@ tmap_mode("plot")
 for (r in 1:length(allTR)){
   inras <- raster(allTR[r])
   inras[inras==0] <- NA
-static_map <- tm_grid(n.x = 4, n.y = 3)+
+static_map <- tm_shape(AOItiles) +
+  tm_rgb()+
+  tm_grid(n.x = 4, n.y = 3)+
   tm_shape(inras) +
   tm_raster(style = pick_style, palette = "Reds", legend.show = TRUE)+
   tm_shape(AOI)+
   tm_borders(col= "Black")+
   tm_compass(position= c("LEFT","bottom"))+
   tm_scale_bar(position = c("center", "bottom"), width = 0.1)+
-  tm_layout(legend.position = c("right","top"), legend.frame = TRUE, legend.bg.color = "white", legend.frame.lwd = 2, frame = TRUE, frame.lwd = 3)
+  tm_layout(legend.position = c("right","TOP"), legend.frame = TRUE, legend.bg.color = "white", legend.frame.lwd = 2, frame = TRUE, frame.lwd = 3)
 tmap_save(static_map,paste0("totalmap_",r,".png"))
 print(static_map, vp=viewport(layout.pos.col = r))
 }
@@ -203,10 +227,29 @@ Z <- X + Y
 Zdf <- as.data.frame(Z, xy=TRUE) %>%
   mutate(z = x + y)
 
+resolution = 50
+Exposure = seq(0, 3, length.out = resolution)
+Consequence = seq(0, 3, length.out = resolution)    
+#Generate contours
+quarter_circle = function(r) {
+  tibble(Level = r,
+         Exposure = r * cos(seq(0, pi/2, length.out = resolution)),
+         Consequence = r * sin(seq(0, pi/2, length.out = resolution)))
+}
+contour_df <- map_dfr(seq(1, 4.5, by = 0.5) - 1, quarter_circle)
+
 ggplot() +               
   geom_raster(data = Zdf, aes(x,y, fill = z), show.legend = FALSE)+
   scale_fill_gradientn(colours=c("#abd9e9","#ffffbf","#fdae61","#d7191c")) +
+  geom_path(aes(Exposure, Consequence, group = Level), 
+            data = contour_df, 
+            color = "#336666",
+            size = 0.5,
+            linetype = "dotted") +
   geom_point(data = scatter, aes(E_MEAN,C_MEAN, shape = HABITAT, color = SUBREGION), size = 4) +
+  # The rest of this tweaks the plot to make it look right
+  scale_x_continuous(limits = c(0, 3), expand = c(0, 0)) +
+  scale_y_continuous(limits = c(0, 3), expand = c(0, 0)) +
   scale_colour_grey()+
   geom_label_repel(data = scatter, aes(x = E_MEAN, y = C_MEAN, label = R_MEAN_rnd, size=NULL), nudge_y = 0.3)+
   labs(x = "Exposure", y = "Consequence")+
